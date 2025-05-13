@@ -1,0 +1,28 @@
+version: '3.9'  # Используется формат версии Compose 3.9 (совместим с последними версиями Docker).
+
+services:  # Определение сервисов, которые будут запущены в контейнерах.
+
+  gitlab:  # Основной сервис GitLab CE (Community Edition).
+    image: gitlab/gitlab-ce:latest  # Использует последний стабильный образ GitLab CE.
+    container_name: gitlab  # Устанавливает имя контейнера вручную для удобства.
+    hostname: gitlab.local  # Устанавливает внутреннее доменное имя (используется GitLab-ом для URL-ов).
+    restart: always  # Гарантирует перезапуск контейнера при сбоях или перезагрузке хоста.
+    ports:
+      - "8443:443"    # Пробрасывает порт 443 GitLab'а (HTTPS) на порт 8443 хоста.
+      - "8080:80"     # Пробрасывает порт 80 GitLab'а (HTTP) на порт 8080 хоста.
+    volumes:
+      - gitlab_config:/etc/gitlab       # Конфигурационные файлы GitLab (в том числе gitlab.rb).
+      - gitlab_logs:/var/log/gitlab     # Логи GitLab.
+      - gitlab_data:/var/opt/gitlab     # Основные данные: репозитории, CI и пр.
+    shm_size: '256m'  # Ограничивает размер общей памяти (Shared Memory), помогает уменьшить потребление RAM.
+    networks:
+      - frontend  # Подключение к сети frontend — так GitLab может быть доступен извне (например, через nginx).
+
+volumes:  # Объявление томов, которые будут сохранять данные между перезапусками контейнеров.
+  gitlab_config:  # Конфигурации GitLab.
+  gitlab_logs:    # Логи GitLab.
+  gitlab_data:    # Основные данные GitLab.
+
+networks:  # Объявление сети, к которой будет подключен GitLab.
+  frontend:  # Общая внешняя сеть, через которую может происходить доступ к GitLab и другим сервисам, например nginx.
+
